@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.3" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png?v=5.1.3">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.3" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Hexo, NexT" />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="前言IoC已经是目前业界非常主流的一种容器技术。它的全称为Inversion of Control，中文通常翻译为控制反转，它还有一种另外的术语叫Dependency Injection(依赖注入)。这些概念用好莱坞的一个原则来描述就是“Don‘t call us，we will call you.”，这句话其实很好的表达了IoC的含义。但这句话往往让很多初学者难以理解，过于抽象。所以本文的内容将">
+<meta property="og:type" content="article">
+<meta property="og:title" content="深入理解IoC">
+<meta property="og:url" content="http://yoursite.com/2017/12/28/深入理解IOC/index.html">
+<meta property="og:site_name" content="海码团">
+<meta property="og:description" content="前言IoC已经是目前业界非常主流的一种容器技术。它的全称为Inversion of Control，中文通常翻译为控制反转，它还有一种另外的术语叫Dependency Injection(依赖注入)。这些概念用好莱坞的一个原则来描述就是“Don‘t call us，we will call you.”，这句话其实很好的表达了IoC的含义。但这句话往往让很多初学者难以理解，过于抽象。所以本文的内容将">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://res.cloudinary.com/dqg1qbacr/image/upload/v1514460340/001_afmqgo.jpg">
+<meta property="og:image" content="http://res.cloudinary.com/dqg1qbacr/image/upload/v1514460340/002_ph5kln.jpg">
+<meta property="og:updated_time" content="2017-12-28T11:26:52.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="深入理解IoC">
+<meta name="twitter:description" content="前言IoC已经是目前业界非常主流的一种容器技术。它的全称为Inversion of Control，中文通常翻译为控制反转，它还有一种另外的术语叫Dependency Injection(依赖注入)。这些概念用好莱坞的一个原则来描述就是“Don‘t call us，we will call you.”，这句话其实很好的表达了IoC的含义。但这句话往往让很多初学者难以理解，过于抽象。所以本文的内容将">
+<meta name="twitter:image" content="http://res.cloudinary.com/dqg1qbacr/image/upload/v1514460340/001_afmqgo.jpg">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    version: '5.1.3',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2017/12/28/深入理解IOC/"/>
+
+
+
+
+
+  <title>深入理解IoC | 海码团</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">海码团</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/12/28/深入理解IOC/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="sea coders">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="海码团">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">深入理解IoC</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-12-28T18:43:37+08:00">
+                2017-12-28
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>IoC已经是目前业界非常主流的一种容器技术。它的全称为Inversion of Control，中文通常翻译为控制反转，它还有一种另外的术语叫Dependency Injection(依赖注入)。这些概念用好莱坞的一个原则来描述就是“Don‘t call us，we will call you.”，这句话其实很好的表达了IoC的含义。但这句话往往让很多初学者难以理解，过于抽象。所以本文的内容将其含义一步步进行剖析和解释，为什么需要IoC，以及如何实现一个简单的IoC容器。</p>
+<h2 id="1-理解概念"><a href="#1-理解概念" class="headerlink" title="1. 理解概念"></a>1. 理解概念</h2><p>在深入学习之前，我们需要先铺垫一些必要的概念，这有助于大家对整个知识体的系贯穿和理解。如果你已经掌握了依赖倒置原则和控制反转，可以从第2小结开始阅读。</p>
+<h3 id="1-1-依赖倒置原则"><a href="#1-1-依赖倒置原则" class="headerlink" title="1.1 依赖倒置原则"></a>1.1 依赖倒置原则</h3><p>在理解IoC之前，我们很有必要了解一下什么是DIP（依赖倒置原则），它是面向对象的五大设计原则（SOLID）之一，这个原则奠定了IoC的核心思想和理念。DIP的核心原则告诉我们，“高层模块不要依赖于低层模块，两者应该依赖于抽象”。我们怎么理解这句话呢？首先我们看看下面的代码片段，并分析一下代码中所存在的一些问题。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Wrench</span> </span>&#123;</span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">repair</span><span class="params">()</span></span>&#123;</span><br><span class="line">    System.out.println(<span class="string">"Repairing..."</span>);</span><br><span class="line">  &#125; </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Worker</span> </span>&#123;</span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">work</span><span class="params">(Wrench wrench)</span></span>&#123;</span><br><span class="line">    wrench.repair();</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>上面的代码很简单，工人（Worker）依赖于一个扳手（Wrench）来完成修理的工作。Worker是调用方，因此称之为高层模块。Wrench是被调用方，因此称之为低层模块。</p>
+<p><img src="http://res.cloudinary.com/dqg1qbacr/image/upload/v1514460340/001_afmqgo.jpg" width="600px"></p>
+<p>这个例子从功能实现的层面上看似乎没什么大问题，但仔细思考一下，在实际的业务场景中，Worker在完成一个具体的修理工作时可能需要使用不同的工具，Wrench只是其中的一种，如果要更换另一种工具比如钳子（Pliers）,那么这时不得不修改Worker类。这样就违反了DIP，同时还违反了OCP（对内修改是关闭的，对外扩展是开放的）。如果要遵循DIP，就表示Worker（高层模块）不应该直接依赖于Wrench（低层模块），让他们两者都依赖一个抽象，我们再来看看修改后的代码。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="class"><span class="keyword">class</span> <span class="title">Tools</span> </span>&#123;</span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="keyword">void</span> <span class="title">repair</span><span class="params">()</span></span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Wrench</span> <span class="keyword">extends</span> <span class="title">Tools</span></span>&#123;</span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">repair</span><span class="params">()</span></span>&#123;</span><br><span class="line">    System.out.println(<span class="string">"Use wrench repairing..."</span>);</span><br><span class="line">  &#125; </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Pliers</span> <span class="keyword">extends</span> <span class="title">Tools</span></span>&#123;</span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">repair</span><span class="params">()</span></span>&#123;</span><br><span class="line">    System.out.println(<span class="string">"Use pliers repairing..."</span>);</span><br><span class="line">  &#125; </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Worker</span> </span>&#123;  </span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">work</span><span class="params">(Tools tools)</span></span>&#123;</span><br><span class="line">    tools.repair();</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>上面的例子中抽象出了Tools类并包含一个repair的抽象方法。Worker类的work方法不再直接依赖Wrench，而是依赖于Tools这个抽象类，它不需要关心Tools的子类或者实现类有哪些，运行时决定由具体哪个子类或实现类来负责执行。Wrench只需要继承抽象Tools类并实现标准的repair方法完成自己相关的业务逻辑。这样高层模块不再依赖具体的低层细节，两者都面向的是一个抽象。当需要更换工具（扩展功能）时，只需要编写新的类（例如Pliers）继承Tools即可，而Worker类是不需要的修改的。这样的编码就很好的遵循了DIP以及OCP。</p>
+<p><img src="http://res.cloudinary.com/dqg1qbacr/image/upload/v1514460340/002_ph5kln.jpg" width="600px"></p>
+<h3 id="1-2-控制反转"><a href="#1-2-控制反转" class="headerlink" title="1.2 控制反转"></a>1.2 控制反转</h3><p>上面的例子解释了DIP的思想，如果要运行以上的程序，我们还需要在代码中维护Worker以及Tools对象的创建以及相关的依赖关系。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Main</span> </span>&#123;</span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span></span>&#123;</span><br><span class="line">    Tools tools = <span class="keyword">new</span> Wrench();</span><br><span class="line">    Worker worker = <span class="keyword">new</span> Worker();</span><br><span class="line">    worker.work(tools);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>仔细观察以上的代码，我们发现其中包含了对象维护的两个工作：</p>
+<ul>
+<li>创建Wrench以及Worker的实例</li>
+<li>完成Worker与Wrench之间的依赖关系</li>
+</ul>
+<p>因此我们又发现了潜在的问题，就是当我需要更换Wrench的时候，又需要更改Main这个类的代码（搞半天，又回到了问题的根源）。怎么解决这个问题呢？我们不妨思考一下，这其中主要的问题就是上面的两个工作（对象的创建以及对象之间的依赖关系）都是以硬编码的方式出现在程序中。因此可以将这两个工作移交给一个独立的组件去完成，它核心职责就是完成对象的创建以及对象之间依赖关系的维护和管理，那么这个组件我们将其称之为“容器”。我们先看看下面的代码片段。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="class"><span class="keyword">class</span> <span class="title">Tools</span> </span>&#123;</span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="keyword">void</span> <span class="title">repair</span><span class="params">()</span></span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Wrench</span> <span class="keyword">extends</span> <span class="title">Tools</span></span>&#123;</span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">repair</span><span class="params">()</span></span>&#123;</span><br><span class="line">    System.out.println(<span class="string">"use wrench repairing..."</span>);</span><br><span class="line">  &#125; </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Worker</span> </span>&#123;  </span><br><span class="line">  <span class="comment">//容器会通过这个方法自动将Tools的子类对象传递进来</span></span><br><span class="line">  <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">setTools</span><span class="params">(Tools tools)</span></span>&#123;</span><br><span class="line">    <span class="keyword">this</span>.tools = tools;</span><br><span class="line">  &#125;</span><br><span class="line">  </span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">work</span><span class="params">()</span></span>&#123;</span><br><span class="line">    tools.repair();</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Main</span> </span>&#123;</span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span></span>&#123;</span><br><span class="line">  	<span class="comment">//工厂容器</span></span><br><span class="line">    BeanFactory factory = <span class="keyword">new</span> BeanFactory();</span><br><span class="line">    <span class="comment">//从容器中直接获取Worker对象</span></span><br><span class="line">    Worker worker = factory.getBean(<span class="string">"worker"</span>, Worker.class)；</span><br><span class="line">    worker.work();</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>使用容器的好处在于，当我们需要Worker对象的时候，不需要自己来创建，通过容器提供的getBean方法直接获取即可，因为容器已经帮我们创建好了Worker。如果Worker需要依赖Tools来完成某些事情，我们可以在Worker中提供一个set方法（不一定是set方法，也可以是构造方法或其他的方式），让容器通过这个方法将Tools的具体子类传递进来，而容器在调用set方法并传入一个Tools实例到Worker中的这个过程就是所谓的控制反转，也叫依赖注入（你可以理解为容器通过某种手段将Tools的实例注入到了Worker中）。这个容器我们也将其称之为IoC容器，它很好的完成了对象管理和对象之间依赖的工作。那么下一个小节我们将进一步深入和探索IoC容器的秘密以及实现一个简单的IoC容器。</p>
+<h2 id="2-实现简单的IoC容器"><a href="#2-实现简单的IoC容器" class="headerlink" title="2. 实现简单的IoC容器"></a>2. 实现简单的IoC容器</h2><p>通过前面的学习我们都很清楚IoC容器的核心职责是负责对象的创建和管理以及对象之间的依赖。那么我们可以理解为容器就是负责对象的创建和管理，而IoC就是完成对象之间的依赖注入。而依赖注入的前提是要有容器的支撑，因为任何需要注入的对象都必须从容器中获取。所以第一步我们先要编写一个容器。</p>
+<h3 id="2-1-实现BeanFactory"><a href="#2-1-实现BeanFactory" class="headerlink" title="2.1 实现BeanFactory"></a>2.1 实现BeanFactory</h3><p>容器的的工作是负责对象的创建和管理，既然所有对象的创建过程都交给了容器，这就是典型的工厂吗？没错，实现这个容器本身也是对工厂模式的一种体现。下面我们将剖析一个简单容器的实现过程。</p>
+<h4 id="2-1-1-哪些Bean交给容器管理"><a href="#2-1-1-哪些Bean交给容器管理" class="headerlink" title="2.1.1 哪些Bean交给容器管理"></a>2.1.1 哪些Bean交给容器管理</h4><p>在一个项目当中不是所有的类都需要纳入容器管理，我们可以配置哪些类需要让容器管理，这个配置的过程可以使用Java的注解或者xml来完成，所有纳入容器管理的对象我们统称为Bean。比如使用xml配置：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">&lt;bean id=<span class="string">"people"</span> <span class="class"><span class="keyword">class</span></span>=<span class="string">"edu.demo.People"</span>/&gt;</span><br><span class="line">&lt;bean id=<span class="string">"wrench"</span> <span class="class"><span class="keyword">class</span></span>=<span class="string">"edu.demo.Wrench"</span>/&gt;</span><br></pre></td></tr></table></figure>
+<p>id表示这个bean在容器中的唯一标识，class则是这个类的全限定类名，接着就可以使用java对这个xml进行解析。当然，你也可以使用Annotation来配置，那么首先可以先自定义一个注解，然后将这个注解标注在类上面，后续通过反射对注解进行解析（后面的实现过程都以注解配置的方式来实现）。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Retention</span>(RetentionPolicy.RUNTIME)</span><br><span class="line"><span class="meta">@Target</span>(ElementType.TYPE)</span><br><span class="line"><span class="keyword">public</span> <span class="meta">@interface</span> Component &#123;</span><br><span class="line">	<span class="function"><span class="keyword">public</span> String <span class="title">value</span><span class="params">()</span></span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>自定义一个@Component注解，@Retention(RetentionPolicy.RUNTIME)表示这个注解会在运行时一直保留，@Target(ElementType.TYPE)表示这个注解只可以标注在类上。并且这个注解有一个value属性类型为String。value属性的作用是用于定义当前类在容器中的唯一标识（类似xml配置中的id）。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Component</span>(value=<span class="string">"people"</span>)</span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">People</span> </span>&#123;</span><br><span class="line">  ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>定义好注解后就可以应用在类上了。像上面的例子，如果类上面定义了@Component注解，就表示这个类是受容器管理的，并且这个类在容器中有一个唯一的标识“people”。如果注解中只有一个属性，并且属性名为value的情况下，那么在定义时可以省略，例如@Component(“people”)。</p>
+<h4 id="2-1-2-Bean的创建形式"><a href="#2-1-2-Bean的创建形式" class="headerlink" title="2.1.2 Bean的创建形式"></a>2.1.2 Bean的创建形式</h4><p>当客户端从容器中获取Bean实例的时候，容器并不一定每一次都新建一个，它可以事先创建一个并一直驻留在容器中，每次获取的时候返回同一个实例，可以达到实例复用的目的，也可以节省内存的开销，这种做法类似与单例模式。但是这种方式也存在一个问题，就是线程安全。由于在运行时的数据区中只有一个实例，在多线程的情况下，这个对象是被多线程所共享的，所以在使用时要求这个实例是线程安全的。当然，在很多场景我们也会要求容器每次都返回一个新的实例。这种方式创建出来的实例并不会驻留在容器中，用完即扔的效果。所以这就必须要求容器对Bean提供不同的管理方式。</p>
+<h4 id="2-1-3-Bean的作用域"><a href="#2-1-3-Bean的作用域" class="headerlink" title="2.1.3 Bean的作用域"></a>2.1.3 Bean的作用域</h4><p>既然容器可以以不同的方式来构建和管理Bean实例，那么这就涉及到另一个概念“作用域”。你可以理解为作用域就是Bean实例的一个生命周期或者存活时间。试想一下，以单例的方式创建的对象会一直驻留在容器中，那么就表示直到这个容器关闭或者销毁的时候Bean实例才会跟随着销毁。Bean的有效存活时间是在整个容器的创建到关闭的有效范围。如果每次获取的是一个新的实例，由于不会驻留在容器中，那么Bean的有效存活时间为就是这个对象使用完或者无引用的时候等待jvm的回收。我们可以将单例的Bean的作用域命名为singleton，将每次新建的Bean的作用域命名为prototype，其他的作用域还可以包括web中的request或者session等作用域，这里为了简化只对singleton和prototype进行实现。那么问题来了，如何告诉容器Bean的作用域是哪一种呢？没错，还是使用注解配置，我们看看下面的代码片段。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Retention</span>(RetentionPolicy.RUNTIME)</span><br><span class="line"><span class="meta">@Target</span>(ElementType.TYPE)</span><br><span class="line"><span class="keyword">public</span> <span class="meta">@interface</span> Scope &#123;</span><br><span class="line">	<span class="function">String <span class="title">value</span><span class="params">()</span> <span class="keyword">default</span> "singleton"</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Component</span>(value=<span class="string">"people"</span>)</span><br><span class="line"><span class="meta">@Scope</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">People</span> </span>&#123;</span><br><span class="line">  ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>我们可以自定义一个@Scope注解,value属性用于指定作用域的值，默认为singleton，这个注解同样只能标注在类上。这样容器在解析注解的时候就知道以什么样的方式来创建Bean实例以及管理它的作用域。如果类上没有标注@Scope注解，可以让容器默认以单例的方式来创建。</p>
+<h4 id="2-1-4-类扫描"><a href="#2-1-4-类扫描" class="headerlink" title="2.1.4 类扫描"></a>2.1.4 类扫描</h4><p>前面我们使用自定义注解来标识容器是如何创建和管理Bean实例，接下来就是进行类扫描。扫描的目的就是为了收集当前项目下以及所依赖的jar文件中所有class的全限定类名。（为什么要扫描依赖的jar文件？因为我们有可能将标识@Component注解的类最终生成jar文件让其他的项目依赖使用）我们看看下面的ScanUtil类。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ScanUtil</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> Set&lt;String&gt; classNames = <span class="keyword">new</span> HashSet&lt;String&gt;();</span><br><span class="line"></span><br><span class="line">	<span class="comment">/**</span></span><br><span class="line"><span class="comment">	 * 依据指定的包名扫描包中以及子包中所有的类</span></span><br><span class="line"><span class="comment">	 * <span class="doctag">@param</span> packageName 包名</span></span><br><span class="line"><span class="comment">	 * <span class="doctag">@return</span> 全限定类名的集合</span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">static</span> Set&lt;String&gt; <span class="title">scan</span><span class="params">(String packageName)</span> </span>&#123;</span><br><span class="line">		<span class="keyword">if</span>(packageName == <span class="keyword">null</span>)&#123;</span><br><span class="line">			<span class="keyword">throw</span> <span class="keyword">new</span> RuntimeException(<span class="string">"The path can not be null."</span>);</span><br><span class="line">		&#125;</span><br><span class="line">		String packagePath = packageName.replace(<span class="string">"."</span>, <span class="string">"/"</span>);</span><br><span class="line">		ClassLoader loader = Thread.currentThread().getContextClassLoader();</span><br><span class="line">		<span class="keyword">try</span> &#123;</span><br><span class="line">			Enumeration&lt;URL&gt; urls = loader.getResources(packagePath);</span><br><span class="line">			<span class="keyword">while</span>(urls.hasMoreElements())&#123;</span><br><span class="line">				URL url= urls.nextElement();</span><br><span class="line">				<span class="keyword">if</span>(<span class="string">"file"</span>.equals(url.getProtocol()))&#123;</span><br><span class="line">					scanFromDir(url.getPath(), packageName);</span><br><span class="line">				&#125;</span><br><span class="line">				<span class="keyword">if</span>(<span class="string">"jar"</span>.equals(url.getProtocol()))&#123;</span><br><span class="line">					JarURLConnection connection = (JarURLConnection)url.openConnection();</span><br><span class="line">					scanFromJar(connection.getJarFile());</span><br><span class="line">				&#125;</span><br><span class="line">			&#125;</span><br><span class="line">		&#125; <span class="keyword">catch</span> (IOException e) &#123;</span><br><span class="line">			<span class="keyword">throw</span> <span class="keyword">new</span> RuntimeException(<span class="string">"Resolve path error."</span>, e);</span><br><span class="line">		&#125;</span><br><span class="line"></span><br><span class="line">		<span class="keyword">return</span> classNames;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="comment">/**</span></span><br><span class="line"><span class="comment">	 * 扫描目录</span></span><br><span class="line"><span class="comment">	 * <span class="doctag">@param</span> filePath 文件目录</span></span><br><span class="line"><span class="comment">	 * <span class="doctag">@param</span> packageName 包名</span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line">	<span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">scanFromDir</span><span class="params">(String filePath, String packageName)</span> <span class="keyword">throws</span> UnsupportedEncodingException</span>&#123;</span><br><span class="line">		filePath = URLDecoder.decode(filePath, <span class="string">"utf-8"</span>);</span><br><span class="line">		packageName = URLDecoder.decode(packageName, <span class="string">"utf-8"</span>);</span><br><span class="line">		File[] files = <span class="keyword">new</span> File(filePath).listFiles();</span><br><span class="line">		packageName = packageName + <span class="string">"."</span>;</span><br><span class="line">		<span class="keyword">for</span> (File childFile : files) &#123;</span><br><span class="line">			<span class="keyword">if</span> (childFile.isDirectory()) &#123;</span><br><span class="line">				scanFromDir(childFile.getPath(), packageName + childFile.getName());</span><br><span class="line">			&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">				String fileName = childFile.getName();</span><br><span class="line">				<span class="keyword">if</span> (fileName.endsWith(<span class="string">".class"</span>)) &#123;</span><br><span class="line">					<span class="keyword">if</span>(packageName.charAt(<span class="number">0</span>) == <span class="string">'.'</span>)&#123;</span><br><span class="line">						packageName = packageName.substring(<span class="number">1</span>, packageName.length());</span><br><span class="line">					&#125;</span><br><span class="line">					String className = packageName + fileName.replace(<span class="string">".class"</span>, <span class="string">""</span>);</span><br><span class="line">					classNames.add(className);</span><br><span class="line">				&#125;</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="comment">/**</span></span><br><span class="line"><span class="comment">	 * 扫描jar文件</span></span><br><span class="line"><span class="comment">	 * <span class="doctag">@param</span> jarFile</span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line">	<span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">scanFromJar</span><span class="params">(JarFile jarFile)</span> </span>&#123;</span><br><span class="line">		Enumeration&lt;JarEntry&gt; files = jarFile.entries();</span><br><span class="line">		<span class="keyword">while</span> (files.hasMoreElements()) &#123;</span><br><span class="line">			JarEntry entry = files.nextElement();</span><br><span class="line">			<span class="keyword">if</span> (entry.getName().endsWith(<span class="string">".class"</span>))&#123;</span><br><span class="line">				String className = entry.getName().replace(<span class="string">"/"</span>, <span class="string">"."</span>).replace(<span class="string">".class"</span>, <span class="string">""</span>);</span><br><span class="line">				classNames.add(className);</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>scan为核心的扫描方法，依据传入的包名将其解析为URL枚举进行遍历，然后根据url对象的Protocol来决定是对目录还是jar进行扫描。如果Protocol是file则调用scanFromDir方法，如果是jar则调用scanFromJar方法。</p>
+<h4 id="2-1-5-BeanDefinition"><a href="#2-1-5-BeanDefinition" class="headerlink" title="2.1.5 BeanDefinition"></a>2.1.5 BeanDefinition</h4><p>在扫描所有的类之后，有一步重要的环节就是要过滤出哪些类上面标注了@Component注解，因为只有标注了这个注解的类才能纳入容器的管理。我们要将这些类的Class对象以及还有标注的@Scope作用域等信息收集保存起来，后续容器需要依据这些信息来构建Bean实例。那么怎么保存这些信息呢？这就是BeanDefinition的作用，每当解析到一个带有@Component注解的类，那么就将它的Class对象以及@Scope信息封装到一个BeanDefinition中，容器就会根据这个BeanDefinition来创建Bean实例。我们看看下面的BeanDefinition类。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">BeanDefinition</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * bean的作用域(创建方式)</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">private</span> String scope;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * bean的Class</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">private</span> Class&lt;?&gt; beanClass;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">getScope</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> scope;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setScope</span><span class="params">(String scope)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.scope = scope;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> Class&lt;?&gt; getBeanClass() &#123;</span><br><span class="line">        <span class="keyword">return</span> beanClass;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setBeanClass</span><span class="params">(Class&lt;?&gt; beanClass)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.beanClass = beanClass;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>通过上面的代码不难看出，BeanDefinition就是一个普通的JavaBean，它保存了Class对象以及作用域信息。每构建一个BeanDefinition都代表一个Bean的描述定义。</p>
+<h4 id="2-1-6-编写容器"><a href="#2-1-6-编写容器" class="headerlink" title="2.1.6 编写容器"></a>2.1.6 编写容器</h4><p>前期的铺垫工作已经差不多了，下面我们将编写最核心的组件”容器”。我们看看下面的BeanFactory类。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">BeanFactory</span> </span>&#123;</span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 存放bean的描述</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">final</span> Map&lt;String, BeanDefinition&gt; definitionMap = <span class="keyword">new</span> ConcurrentHashMap&lt;&gt;();</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 存放单例bean的实例</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">final</span> Map&lt;String, Object&gt; singletonMap = <span class="keyword">new</span> ConcurrentHashMap&lt;&gt;();</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 在构造方法中初始化并构建所有bean描述</span></span><br><span class="line"><span class="comment">     * 以及单例的bean</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> path 扫描路径</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">BeanFactory</span><span class="params">(String path)</span> </span>&#123;</span><br><span class="line">        Set&lt;String&gt; classNames = ScanUtil.scan(path);</span><br><span class="line">        <span class="comment">//初始化原型</span></span><br><span class="line">        initDefinitionMap(classNames);</span><br><span class="line">        <span class="comment">//初始化单例</span></span><br><span class="line">        initSingleton();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 根据扫描的类名进行解析，找出带有<span class="doctag">@Component</span>注解的类，并构建成</span></span><br><span class="line"><span class="comment">     * BeanDefinition实例，保存到definitionMap集合中</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">initDefinitionMap</span><span class="params">(Set&lt;String&gt; classNames)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">for</span> (String className : classNames) &#123;</span><br><span class="line">            Class&lt;?&gt; beanClass = getClass(className);</span><br><span class="line">            <span class="comment">//检查beanClass是否标注了@Component注解</span></span><br><span class="line">            <span class="keyword">if</span> (beanClass.isAnnotationPresent(Component.class)) &#123;</span><br><span class="line">                <span class="comment">//获取@Component注解的value属性的值，这个值作为bean在容器的唯一标识</span></span><br><span class="line">                String beanName = beanClass.getAnnotation(Component.class).value();</span><br><span class="line">                <span class="comment">//如果容器已经存在bean，则抛出异常</span></span><br><span class="line">                <span class="keyword">if</span> (definitionMap.containsKey(beanName)) &#123;</span><br><span class="line">                    <span class="keyword">throw</span> <span class="keyword">new</span> RuntimeException(</span><br><span class="line">                            <span class="string">"conflicts with existing, non-compatible bean definition of same name and class ["</span></span><br><span class="line">                                    + beanClass + <span class="string">"]"</span>);</span><br><span class="line">                &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                    definitionMap.put(beanName,</span><br><span class="line">                            createBeanDefinition(beanClass));</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 根据权限顶类名获取Class对象</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> className</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@return</span></span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">private</span> Class&lt;?&gt; getClass(String className) &#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="keyword">return</span> Class.forName(className);</span><br><span class="line">        &#125; <span class="keyword">catch</span> (ClassNotFoundException e) &#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> RuntimeException(<span class="string">"Can not find the class name "</span> + className + <span class="string">" to build the description."</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 构建bean描述定义,将bean的scope以及类名封装到BeanDefinition中</span></span><br><span class="line"><span class="comment">     * 创建的Bean描述会放入definitionMap的集合中保存</span></span><br><span class="line"><span class="comment">     * Bean的类名作为集合的key,而整个BeanDefinition对象作为value</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> beanClass</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">private</span> BeanDefinition <span class="title">createBeanDefinition</span><span class="params">(Class&lt;?&gt; beanClass)</span> </span>&#123;</span><br><span class="line">        <span class="comment">// 创建BeanDefinition</span></span><br><span class="line">        BeanDefinition definition = <span class="keyword">new</span> BeanDefinition();</span><br><span class="line">        <span class="comment">//设置Bean的Class对象</span></span><br><span class="line">        definition.setBeanClass(beanClass);</span><br><span class="line">        <span class="comment">//设置Bean的作用域</span></span><br><span class="line">        definition.setScope(resolveScope(beanClass));</span><br><span class="line">        <span class="keyword">return</span> definition;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 解析Scope，如果bean的class上指定了Scope注解,则将<span class="doctag">@Scope</span>的value属性值作为Bean的创建方式</span></span><br><span class="line"><span class="comment">     * 否则Bean的默认创建方式将使用单例</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">private</span> String <span class="title">resolveScope</span><span class="params">(Class&lt;?&gt; beanClass)</span> </span>&#123;</span><br><span class="line">        String scope = (beanClass.isAnnotationPresent(Scope.class)) ? beanClass</span><br><span class="line">                .getAnnotation(Scope.class).value() : <span class="string">"singleton"</span>;</span><br><span class="line">        <span class="keyword">return</span> scope;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 初始化SINGLETON实例放入bean容器中</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">initSingleton</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">for</span> (String beanName : definitionMap.keySet()) &#123;</span><br><span class="line">            BeanDefinition definition = definitionMap.get(beanName);</span><br><span class="line">            <span class="keyword">if</span> (<span class="string">"singleton"</span>.equals(definition.getScope())) &#123;</span><br><span class="line">                Object bean = newInstance(definition);</span><br><span class="line">                singletonMap.put(beanName, bean);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 根据描述定义创建Bean实例</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> definition</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@return</span></span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">private</span> Object <span class="title">newInstance</span><span class="params">(BeanDefinition definition)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="keyword">return</span> definition.getBeanClass().newInstance();</span><br><span class="line">        &#125; <span class="keyword">catch</span> (InstantiationException e) &#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> RuntimeException(<span class="string">"Create bean instance fail."</span>, e);</span><br><span class="line">        &#125; <span class="keyword">catch</span> (IllegalAccessException e) &#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> RuntimeException(<span class="string">"Create bean instance fail."</span>, e);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 获取bean实例</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> beanName</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@return</span></span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Object <span class="title">getBean</span><span class="params">(String beanName)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> doGetBean(beanName);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 获取bean实例(泛型)</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> beanName</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> clazz</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@return</span></span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">public</span> &lt;T&gt; <span class="function">T <span class="title">getBean</span><span class="params">(String beanName, Class&lt;T&gt; clazz)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> (T) doGetBean(beanName);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 从容器中获取Bean的BeanDefinition</span></span><br><span class="line"><span class="comment">     * 如果Bean的BeanDefinition的scope为singleton,则从singletonMap中获取单例</span></span><br><span class="line"><span class="comment">     * 否则以原型的方式创建并返回</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">private</span> Object <span class="title">doGetBean</span><span class="params">(String beanName)</span> </span>&#123;</span><br><span class="line">        BeanDefinition definition = definitionMap.get(beanName);</span><br><span class="line">        <span class="keyword">if</span>(<span class="string">"singleton"</span>.equals(definition.getScope()))&#123;</span><br><span class="line">            <span class="keyword">return</span> singletonMap.get(beanName);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> newInstance(definition);</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+<p>说一下整体思路，BeanFactory中维护了definitionMap和singletonMap两个map集合，这两个集合都作为容器的一部分存在，只是存放的内容不一样。definitionMap用来存放所有Bean的描述定义（BeanDefinition），singletonMap则存放所有Scope为singleton的Bean实例。在创建BeanFactory的同时，通过构造方进行容器的初始化。依据传入的包名进行类扫描，接着调用initDefinitionMap方法执析并初始化所有的BeanDefinition保存到definitionMap中。然后调用initSingleton方法初始化所有单例的Bean（注意，在初始化所有单例的过程中也是依据先前构建好的BeanDefinition来创建）。完成这些步骤，容器就初始化完成了。但容器还要需要对外提供一个可以让客户端从容器中获取Bean实例的方法。注意观察代码中的两个getBean方法（两个方法区别只是对泛型的支持），它们都调用了doGetBean的私有方法，这个方法会判断是以单例还是原型的方式来构建Bean实例，如果scope为singleton。那么直接从singletonMap中获取先前初始化好的对象并返回，否则调用createBean方法依据BeanDefinition创建一个原型的实例并返回。到此，简单的容器就实现好了。</p>
+<h4 id="2-1-7-测试容器"><a href="#2-1-7-测试容器" class="headerlink" title="2.1.7 测试容器"></a>2.1.7 测试容器</h4><p>容器编写好后我们需要测试一下容器的运行效果。首先将编写好的所有源码编译并导出为一个jar文件，在测试项目中依赖进来。这里使用先前的案例来进行简单的单元测试。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Component</span>(<span class="string">"worker"</span>)</span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Worker</span> </span>&#123;  </span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">work</span><span class="params">(Tools tools)</span></span>&#123;</span><br><span class="line">    tools.repair();</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在Worker类上标注@Component注解，并给value属性赋值一个worker,表示在容器中的唯一标识。这里没有使用@Scope注解，因此容器默认就是以单例的方式来构建Worker实例。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">BeanFactoryTest</span> </span>&#123;</span><br><span class="line">  <span class="meta">@Test</span></span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">testGetBean</span><span class="params">()</span></span>&#123;</span><br><span class="line">  	<span class="comment">//创建工厂容器</span></span><br><span class="line">    BeanFactory factory = <span class="keyword">new</span> BeanFactory(<span class="string">"edu.demo"</span>);</span><br><span class="line">    <span class="comment">//从容器中直接获取Worker对象</span></span><br><span class="line">    Worker w1 = factory.getBean(<span class="string">"worker"</span>, Worker.class);</span><br><span class="line">    Worker w2 = factory.getBean(<span class="string">"worker"</span>, Worker.class);</span><br><span class="line">    System.out.println(w1 == w2);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>上面的代码中创建了一个BeanFactory，并两次调用getBean方法获取Worker对象w1和w2并比较他们的引用地址是否相等。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">true</span><br></pre></td></tr></table></figure>
+<p>从结果显示，两个地址是一样的，表示两个引用指向的是容器中同一个实例。</p>
+<p>然后我们再给Worker类加上@Scope注解并指定为prototype。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Component</span>(<span class="string">"worker"</span>)</span><br><span class="line"><span class="meta">@Scope</span>(<span class="string">"prototype"</span>)</span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Worker</span> </span>&#123;  </span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">work</span><span class="params">(Tools tools)</span></span>&#123;</span><br><span class="line">    tools.repair();</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>再次执行单元测试查看结果。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">false</span><br></pre></td></tr></table></figure>
+<p>从结果得知，每次调用getBean方法时，容器都是新建了一个实例并返回。</p>
+<h3 id="2-2-实现依赖注入"><a href="#2-2-实现依赖注入" class="headerlink" title="2.2 实现依赖注入"></a>2.2 实现依赖注入</h3><p>前面已经完成了容器的基础功能，但只有基础功能并不能称之为IoC容器，因此还需要给容器添加注入的能力。容器在装配Bean的过程需要对当前Bean实例本身进行依赖检查，看看它有没有对其他对象有依赖，而整个检查的过程是向下递归的。举个例子，容器在构建A对象时，需要检查是否依赖的了B对象，如果存在依赖，那么回到容器中查找B实例，如果此时B实例未创建，那么就根据定义的Scope来构建B实例（如果是单例会保存到容器中），接着对B实例进行依赖检查，看看是否依赖的C对象，如果存在依赖，那么又回到容器中查找C，以此一直往下递归检查，最后将C对象赋值到B对象中，再把B对象赋值到A对象中，直到完成所有对象的依赖装配。</p>
+<h4 id="2-2-1-注入的形式"><a href="#2-2-1-注入的形式" class="headerlink" title="2.2.1 注入的形式"></a>2.2.1 注入的形式</h4><p>既然依赖注入是容器对实例检查并赋值的一个过程，那么我们在开发的过程中需要告知容器可以通过哪些形式来注入。但不管哪种形式，目的都是为容器提供一个赋值的入口，容器会在装配Bean实例的时候通过这些入口将需要注入的对象传入进来。常见的注入形式分为以下几种：</p>
+<ul>
+<li>构造方法注入</li>
+<li>set方法注入</li>
+<li>接口注入</li>
+<li>字段注入</li>
+</ul>
+<p>为了简单起见，文章中只实现基于注解的set方法注入和字段注入两种方式。</p>
+<h4 id="2-2-2-定义-Inject注解"><a href="#2-2-2-定义-Inject注解" class="headerlink" title="2.2.2 定义@Inject注解"></a>2.2.2 定义@Inject注解</h4><p>如果注入的形式有多种，怎么告诉容器使用哪种方式注入呢？其实我们同样可以使用一个自定义的注解来进行配置，例如下面的代码。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Component</span>(<span class="string">"worker"</span>)</span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Worker</span> </span>&#123;</span><br><span class="line">  </span><br><span class="line">  <span class="keyword">private</span> Tools tools;</span><br><span class="line">  </span><br><span class="line">  <span class="meta">@Inject</span>(<span class="string">"wrench"</span>)</span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setTools</span><span class="params">(Tools tools)</span></span>&#123;</span><br><span class="line">    <span class="keyword">this</span>.tools = tools;</span><br><span class="line">  &#125;  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>当容器解析到set方法上有@Inject注解时，表示通过调用set方法来注入一个在容器中标识为wrench的Bean实例。当然，这个注解同样可以标注在字段上，那么解析到此字段的时候通过容器查找标识为wrench的Bean实例并赋值给当前的字段。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Component</span>(<span class="string">"worker"</span>)</span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Worker</span> </span>&#123;</span><br><span class="line">  </span><br><span class="line">  <span class="meta">@Inject</span>(<span class="string">"wrench"</span>)</span><br><span class="line">  <span class="keyword">private</span> Tools tools;</span><br><span class="line">  </span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setTools</span><span class="params">(Tools tools)</span></span>&#123;</span><br><span class="line">    <span class="keyword">this</span>.tools = tools;</span><br><span class="line">  &#125;  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>那么下面我们先自定义@Inject的注解</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Retention</span>(RetentionPolicy.RUNTIME)</span><br><span class="line"><span class="meta">@Target</span>(&#123;ElementType.FIELD, ElementType.METHOD&#125;)</span><br><span class="line"><span class="keyword">public</span> <span class="meta">@interface</span> Inject &#123;</span><br><span class="line">    <span class="function">String <span class="title">name</span><span class="params">()</span></span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>@Target({ElementType.FIELD, ElementType.METHOD})表示此注解可以同时标注在字段和方法上。</p>
+<h4 id="2-2-3-定义抽象注入处理器"><a href="#2-2-3-定义抽象注入处理器" class="headerlink" title="2.2.3 定义抽象注入处理器"></a>2.2.3 定义抽象注入处理器</h4><p>为什么需要抽象的注入接口呢？大家不妨思考下，字段注入和set方法注入的实现过程是不一样（将来可能还会扩展构造方法注入），因此我们才需要抽象出一个注入的接口，代码如下。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">InjectHandler</span> </span>&#123;</span><br><span class="line">	<span class="comment">// 抽象注入行为,便于不同的注入实现,例如字段注入或方法注入</span></span><br><span class="line">	<span class="function"><span class="keyword">void</span> <span class="title">handle</span><span class="params">(Object target, Class&lt;?&gt; targetClass, BeanFactory factory)</span></span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>handle方法的第一个参数是被注入对象的实例，例如A需要注入一个B，而target指的就是A的实例。第二个参数是被注入对象的Class对象，也就是A的Class。第三个参数是Bean容器的实例。这个参数非常关键，因为当A需要注入B的时候，那么需要从容器中获取B实例，这是注入非常关键的一步。</p>
+<h4 id="2-2-4-实现set方法和字段注入"><a href="#2-2-4-实现set方法和字段注入" class="headerlink" title="2.2.4 实现set方法和字段注入"></a>2.2.4 实现set方法和字段注入</h4><p>接下来我们看看字段和set方法注入的具体实现。</p>
+<ul>
+<li>实现字段注入</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">FieldInjectHandler</span> <span class="keyword">implements</span> <span class="title">InjectHandler</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">handle</span><span class="params">(Object target, Class&lt;?&gt; targetClass, BeanFactory factory)</span> </span>&#123;</span><br><span class="line">        <span class="comment">// 遍历当前类中的字段</span></span><br><span class="line">        <span class="keyword">for</span> (Field field : targetClass.getDeclaredFields()) &#123;</span><br><span class="line">            <span class="comment">// 判断字段是否定义了@Inject注解类型</span></span><br><span class="line">            <span class="keyword">if</span> (field.isAnnotationPresent(Inject.class)) &#123;</span><br><span class="line">                <span class="comment">// 获取该属性上的Inject注解</span></span><br><span class="line">                Inject annotation = field.getAnnotation(Inject.class);</span><br><span class="line">                <span class="comment">// 根据注解name属性的值,从容器获取bean实例</span></span><br><span class="line">                Object property = factory.getBean(annotation.name());</span><br><span class="line">                <span class="comment">// 给当前的field属性赋值(注入)</span></span><br><span class="line">                injectField(field, target, property);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">injectField</span><span class="params">(Field field, Object target, Object property)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">          	<span class="comment">//打开访问开关</span></span><br><span class="line">            <span class="keyword">if</span>(!field.isAccessible()) &#123;</span><br><span class="line">                field.setAccessible(<span class="keyword">true</span>);</span><br><span class="line">            &#125;</span><br><span class="line">          	<span class="comment">//给字段赋值</span></span><br><span class="line">            field.set(target, property);</span><br><span class="line">        &#125; <span class="keyword">catch</span> (IllegalAccessException e) &#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> RuntimeException(<span class="string">"Field inject fail."</span>, e);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>实现set方法注入</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MethodInjectHandler</span> <span class="keyword">implements</span> <span class="title">InjectHandler</span> </span>&#123;</span><br><span class="line">	</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">handle</span><span class="params">(Object target, Class&lt;?&gt; targetClass, BeanFactory factory)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            BeanInfo beanInfo = Introspector.getBeanInfo(targetClass,</span><br><span class="line">                    Object.class);</span><br><span class="line">            PropertyDescriptor[] propertyDescriptors = beanInfo</span><br><span class="line">                    .getPropertyDescriptors();</span><br><span class="line">            <span class="keyword">for</span> (PropertyDescriptor propertyDescriptor : propertyDescriptors) &#123;</span><br><span class="line">                targetClass.getDeclaredField(propertyDescriptor.getName());</span><br><span class="line">                <span class="comment">//获取属性描述符的set方法</span></span><br><span class="line">                Method setMethod = propertyDescriptor.getWriteMethod();</span><br><span class="line">                <span class="comment">//判断set方法上是否标注了@Inject注解</span></span><br><span class="line">                <span class="keyword">if</span> (setMethod != <span class="keyword">null</span> &amp;&amp; setMethod.isAnnotationPresent(Inject.class)) &#123;</span><br><span class="line">                    <span class="comment">// 获取该方法上的Inject注解</span></span><br><span class="line">                    Inject annotation = setMethod.getAnnotation(Inject.class);</span><br><span class="line">                    <span class="comment">// 根据注解name属性的值,从容器获取bean实例</span></span><br><span class="line">                    Object property = factory.getBean(annotation.name());</span><br><span class="line">                    <span class="comment">// 回调set方法将property注入</span></span><br><span class="line">                    setMethod.invoke(target, property);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">            <span class="keyword">new</span> RuntimeException(<span class="string">"Set method inject fail."</span>, e);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="2-2-5-编写InjectHandlerInvoker类"><a href="#2-2-5-编写InjectHandlerInvoker类" class="headerlink" title="2.2.5 编写InjectHandlerInvoker类"></a>2.2.5 编写InjectHandlerInvoker类</h4><p>在一个类中可能同时出现Field注入和set方法注入配置来注入不同的对象，例如下面代码片段中wrench是通过Field注入的，而pliers则是通过set方法注入。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Component</span>(<span class="string">"worker"</span>)</span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Worker</span> </span>&#123;</span><br><span class="line">  </span><br><span class="line">  <span class="meta">@Inject</span>(<span class="string">"wrench"</span>)</span><br><span class="line">  <span class="keyword">private</span> Tools wrench;</span><br><span class="line">  <span class="keyword">private</span> Tools pliers;</span><br><span class="line">  </span><br><span class="line">  <span class="meta">@Inject</span>(<span class="string">"pliers"</span>)</span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setPliers</span><span class="params">(Tools pliers)</span></span>&#123;</span><br><span class="line">    <span class="keyword">this</span>.pliers = pliers;</span><br><span class="line">  &#125;  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>如何同时满足这些不同的注入方式呢？因此在InjectHandlerInvoker类中可以维护所有的注入实现类，并统一批量调用所有的这些实现来完成不同形式的注入。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">InjectHandlerInvoker</span> </span>&#123;</span><br><span class="line">	</span><br><span class="line">	<span class="keyword">private</span> <span class="keyword">static</span> List&lt;InjectHandler&gt; handlers = <span class="keyword">new</span> ArrayList&lt;&gt;();</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">	 * 初始化注入处理器</span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line">	<span class="keyword">static</span> &#123;</span><br><span class="line">		handlers.add(<span class="keyword">new</span> FieldInjectHandler());</span><br><span class="line">		handlers.add(<span class="keyword">new</span> MethodInjectHandler());</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="comment">/**</span></span><br><span class="line"><span class="comment">	 * 执行注入操作</span></span><br><span class="line"><span class="comment">	 * <span class="doctag">@param</span> bean 被注入的bean实例</span></span><br><span class="line"><span class="comment">	 * <span class="doctag">@param</span> targetClass 被注入的Bean的class</span></span><br><span class="line"><span class="comment">	 * <span class="doctag">@param</span> factory 容器</span></span><br><span class="line"><span class="comment">	 * <span class="doctag">@return</span></span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">static</span> Object <span class="title">inject</span><span class="params">(Object bean, Class&lt;?&gt; targetClass,BeanFactory factory)</span> </span>&#123;</span><br><span class="line">		<span class="keyword">for</span>(InjectHandler handler : handlers)&#123;</span><br><span class="line">			handler.handle(bean, targetClass, factory);</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">return</span> bean;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="2-2-6-将注入功能合并到容器中"><a href="#2-2-6-将注入功能合并到容器中" class="headerlink" title="2.2.6 将注入功能合并到容器中"></a>2.2.6 将注入功能合并到容器中</h4><p>上面已经实现了依赖注入的基本功能，最后一步就是要将注入功能集成到之前编写好的容器中。这里我们首先要考思考一个问题，容器应该在什么时候对Bean实例进行依赖装配。在前面编写的BeanFactory的代码中我们得知容器在构建Bean实例时分两种形式，一种是以singleton的方式创建，并且在创建容器时一并将所有的单例构建完成并放入容器中。第二种是以prototype的方式创建，并且是在调用getBean的时候才进行构建。因此针对这两种方式我们可以将依赖注入的动作分别在不同的构建周期中来进行。</p>
+<h4 id="2-2-7-改造BeanFactory"><a href="#2-2-7-改造BeanFactory" class="headerlink" title="2.2.7 改造BeanFactory"></a>2.2.7 改造BeanFactory</h4><p>对于singleton的情况，可以在BefanFactory执行initSingleton方法之后就对所有单例进行依赖装配。修改BeanFactory新增assemblySingletons方法，代码如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 为初始化的singleton实例执行依赖注入</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">assemblySingletons</span><span class="params">()</span> </span>&#123;</span><br><span class="line">	<span class="keyword">for</span> (String beanName : singletonMap.keySet()) &#123;</span><br><span class="line">		Class&lt;?&gt; beanClass = definitionMap.get(beanName).getBeanClass();</span><br><span class="line">		Object bean = singletonMap.get(beanName);</span><br><span class="line">		InjectHandlerInvoker.inject(bean, beanClass, <span class="keyword">this</span>);</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>接着在BeanFactory构造方法中调用assemblySingletons方法,代码如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="title">BeanFactory</span><span class="params">(String path)</span> </span>&#123;</span><br><span class="line">	Set&lt;String&gt; classNames = ScanUtil.scan(path);</span><br><span class="line">	<span class="comment">//初始化原型</span></span><br><span class="line">	initDefinitionMap(classNames);</span><br><span class="line">	<span class="comment">//初始化单例</span></span><br><span class="line">	initSingleton();</span><br><span class="line">	<span class="comment">//执行singleton实例装配</span></span><br><span class="line">	assemblySingletons();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>对于prototype的情况，可以在调用doGetBean方法时进行依赖装配。修改BeanFactory新增assemblyPrototype方法，代码如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 为prototype实例执行装配</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="keyword">protected</span> Object <span class="title">assemblyPrototype</span><span class="params">(BeanDefinition definition)</span></span>&#123;</span><br><span class="line">	Object bean = newInstance(definition);</span><br><span class="line">	InjectHandlerInvoker.inject(bean, definition.getBeanClass(), <span class="keyword">this</span>);</span><br><span class="line">	<span class="keyword">return</span> bean;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>最后修改doGetBean的方法，代码如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> Object <span class="title">doGetBean</span><span class="params">(String beanName)</span> </span>&#123;</span><br><span class="line">	BeanDefinition definition = definitionMap.get(beanName);</span><br><span class="line">	<span class="keyword">if</span>(<span class="string">"singleton"</span>.equals(definition.getScope()))&#123;</span><br><span class="line">		<span class="keyword">return</span> singletonMap.get(beanName);</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> assemblyPrototype(definition);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>注意，在调用assemblySingletons或者assemblyPrototype方法时，这里会产生递归。因为在FieldInjectHandler和MethodInjectHandler执行注入的过程中需要调用BeanFactory的doGetBean方法从容器中查找需要注入的实例，接着继续对查找出来的对象执行依赖检查和装配的过程。</p>
+<p>修改后的BeanFactory代码：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br><span class="line">162</span><br><span class="line">163</span><br><span class="line">164</span><br><span class="line">165</span><br><span class="line">166</span><br><span class="line">167</span><br><span class="line">168</span><br><span class="line">169</span><br><span class="line">170</span><br><span class="line">171</span><br><span class="line">172</span><br><span class="line">173</span><br><span class="line">174</span><br><span class="line">175</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">BeanFactory</span> </span>&#123;</span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 存放bean的描述</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">final</span> Map&lt;String, BeanDefinition&gt; definitionMap = <span class="keyword">new</span> ConcurrentHashMap&lt;&gt;();</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 存放单例bean的实例</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">final</span> Map&lt;String, Object&gt; singletonMap = <span class="keyword">new</span> ConcurrentHashMap&lt;&gt;();</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 在构造方法中初始化并构建所有bean描述</span></span><br><span class="line"><span class="comment">     * 以及单例的bean</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> path 扫描路径</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">BeanFactory</span><span class="params">(String path)</span> </span>&#123;</span><br><span class="line">        Set&lt;String&gt; classNames = ScanUtil.scan(path);</span><br><span class="line">        <span class="comment">//初始化原型</span></span><br><span class="line">        initDefinitionMap(classNames);</span><br><span class="line">        <span class="comment">//初始化单例</span></span><br><span class="line">        initSingleton();</span><br><span class="line">        <span class="comment">//执行singleton实例装配</span></span><br><span class="line">        assemblySingletons();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 根据扫描的类名进行解析，找出带有<span class="doctag">@Component</span>注解的类，并构建成</span></span><br><span class="line"><span class="comment">     * BeanDefinition实例，保存到definitionMap集合中</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">initDefinitionMap</span><span class="params">(Set&lt;String&gt; classNames)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">for</span> (String className : classNames) &#123;</span><br><span class="line">            Class&lt;?&gt; beanClass = getClass(className);</span><br><span class="line">            <span class="comment">//检查beanClass是否标注了@Component注解</span></span><br><span class="line">            <span class="keyword">if</span> (beanClass.isAnnotationPresent(Component.class)) &#123;</span><br><span class="line">                <span class="comment">//获取@Component注解的value属性的值，这个值作为bean在容器的唯一标识</span></span><br><span class="line">                String beanName = beanClass.getAnnotation(Component.class).value();</span><br><span class="line">                <span class="comment">//如果容器已经存在bean，则抛出异常</span></span><br><span class="line">                <span class="keyword">if</span> (definitionMap.containsKey(beanName)) &#123;</span><br><span class="line">                    <span class="keyword">throw</span> <span class="keyword">new</span> RuntimeException(</span><br><span class="line">                            <span class="string">"conflicts with existing, non-compatible bean definition of same name and class ["</span></span><br><span class="line">                                    + beanClass + <span class="string">"]"</span>);</span><br><span class="line">                &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                    definitionMap.put(beanName,</span><br><span class="line">                            createBeanDefinition(beanClass));</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 根据权限顶类名获取Class对象</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> className</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@return</span></span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">private</span> Class&lt;?&gt; getClass(String className) &#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="keyword">return</span> Class.forName(className);</span><br><span class="line">        &#125; <span class="keyword">catch</span> (ClassNotFoundException e) &#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> RuntimeException(<span class="string">"Can not find the class name "</span> + className + <span class="string">" to build the description."</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 构建bean描述定义,将bean的scope以及类名封装到BeanDefinition中</span></span><br><span class="line"><span class="comment">     * 创建的Bean描述会放入definitionMap的集合中保存</span></span><br><span class="line"><span class="comment">     * Bean的类名作为集合的key,而整个BeanDefinition对象作为value</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> beanClass</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">private</span> BeanDefinition <span class="title">createBeanDefinition</span><span class="params">(Class&lt;?&gt; beanClass)</span> </span>&#123;</span><br><span class="line">        <span class="comment">// 创建BeanDefinition</span></span><br><span class="line">        BeanDefinition definition = <span class="keyword">new</span> BeanDefinition();</span><br><span class="line">        <span class="comment">//设置Bean的Class对象</span></span><br><span class="line">        definition.setBeanClass(beanClass);</span><br><span class="line">        <span class="comment">//设置Bean的作用域</span></span><br><span class="line">        definition.setScope(resolveScope(beanClass));</span><br><span class="line">        <span class="keyword">return</span> definition;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 解析Scope，如果bean的class上指定了Scope注解,则将<span class="doctag">@Scope</span>的value属性值作为Bean的创建方式</span></span><br><span class="line"><span class="comment">     * 否则Bean的默认创建方式将使用单例</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">private</span> String <span class="title">resolveScope</span><span class="params">(Class&lt;?&gt; beanClass)</span> </span>&#123;</span><br><span class="line">        String scope = (beanClass.isAnnotationPresent(Scope.class)) ? beanClass</span><br><span class="line">                .getAnnotation(Scope.class).value() : <span class="string">"singleton"</span>;</span><br><span class="line">        <span class="keyword">return</span> scope;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 初始化SINGLETON实例放入bean容器中</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">initSingleton</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">for</span> (String beanName : definitionMap.keySet()) &#123;</span><br><span class="line">            BeanDefinition definition = definitionMap.get(beanName);</span><br><span class="line">            <span class="keyword">if</span> (<span class="string">"singleton"</span>.equals(definition.getScope())) &#123;</span><br><span class="line">                Object bean = newInstance(definition);</span><br><span class="line">                singletonMap.put(beanName, bean);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 为所有singleton实例执行装配（依赖注入）</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">assemblySingletons</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">for</span> (String beanName : singletonMap.keySet()) &#123;</span><br><span class="line">            Class&lt;?&gt; beanClass = definitionMap.get(beanName).getBeanClass();</span><br><span class="line">            Object bean = singletonMap.get(beanName);</span><br><span class="line">            InjectHandlerInvoker.inject(bean, beanClass, <span class="keyword">this</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 为prototype实例执行装配</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">protected</span> Object <span class="title">assemblyPrototype</span><span class="params">(BeanDefinition definition)</span></span>&#123;</span><br><span class="line">        Object bean = newInstance(definition);</span><br><span class="line">        InjectHandlerInvoker.inject(bean, definition.getBeanClass(), <span class="keyword">this</span>);</span><br><span class="line">        <span class="keyword">return</span> bean;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 根据描述定义创建Bean实例</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> definition</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@return</span></span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">private</span> Object <span class="title">newInstance</span><span class="params">(BeanDefinition definition)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="keyword">return</span> definition.getBeanClass().newInstance();</span><br><span class="line">        &#125; <span class="keyword">catch</span> (InstantiationException e) &#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> RuntimeException(<span class="string">"Create bean instance fail."</span>, e);</span><br><span class="line">        &#125; <span class="keyword">catch</span> (IllegalAccessException e) &#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> RuntimeException(<span class="string">"Create bean instance fail."</span>, e);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 获取bean实例</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> beanName</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@return</span></span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Object <span class="title">getBean</span><span class="params">(String beanName)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> doGetBean(beanName);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 获取bean实例(泛型)</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> beanName</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> clazz</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@return</span></span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="meta">@SuppressWarnings</span>(<span class="string">"unchecked"</span>)</span><br><span class="line">    <span class="keyword">public</span> &lt;T&gt; <span class="function">T <span class="title">getBean</span><span class="params">(String beanName, Class&lt;T&gt; clazz)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> (T) doGetBean(beanName);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 从容器中获取Bean的BeanDefinition</span></span><br><span class="line"><span class="comment">     * 如果Bean的BeanDefinition的scope为singleton,则从singletonMap中获取单例</span></span><br><span class="line"><span class="comment">     * 否则装配原型并返回</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">private</span> Object <span class="title">doGetBean</span><span class="params">(String beanName)</span> </span>&#123;</span><br><span class="line">        BeanDefinition definition = definitionMap.get(beanName);</span><br><span class="line">        <span class="keyword">if</span>(<span class="string">"singleton"</span>.equals(definition.getScope()))&#123;</span><br><span class="line">            <span class="keyword">return</span> singletonMap.get(beanName);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> assemblyPrototype(definition);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="2-2-8-综合测试"><a href="#2-2-8-综合测试" class="headerlink" title="2.2.8 综合测试"></a>2.2.8 综合测试</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="class"><span class="keyword">class</span> <span class="title">Tools</span> </span>&#123;</span><br><span class="line">  </span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="keyword">void</span> <span class="title">repair</span><span class="params">()</span></span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Component</span>(<span class="string">"wrench"</span>)</span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Wrench</span> <span class="keyword">extends</span> <span class="title">Tools</span></span>&#123;</span><br><span class="line">  </span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">repair</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">"Use wrench repairing..."</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Component</span>(<span class="string">"pliers"</span>)</span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Pliers</span> <span class="keyword">extends</span> <span class="title">Tools</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">repair</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">"Use pliers repairing..."</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Component</span>(<span class="string">"worker"</span>)</span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Worker</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 字段注入</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="meta">@Inject</span>(name = <span class="string">"wrench"</span>)</span><br><span class="line">    <span class="keyword">private</span> Tools wrench;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> Tools pliers;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * set方法注入</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="meta">@Inject</span>(name = <span class="string">"pliers"</span>)</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setPliers</span><span class="params">(Tools pliers)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.pliers = pliers;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">useWrench</span><span class="params">()</span></span>&#123;</span><br><span class="line">        wrench.repair();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">usePliers</span><span class="params">()</span></span>&#123;</span><br><span class="line">        pliers.repair();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>测试：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Main</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        BeanFactory beanFactory = <span class="keyword">new</span> BeanFactory(<span class="string">"edu.demo"</span>);</span><br><span class="line">        Worker worker = beanFactory.getBean(<span class="string">"worker"</span>, Worker.class);</span><br><span class="line">        worker.useWrench();</span><br><span class="line">        worker.usePliers();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p> 运行结果：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Use wrench repairing...</span><br><span class="line">Use pliers repairing...</span><br></pre></td></tr></table></figure>
+<h2 id="3-结束语"><a href="#3-结束语" class="headerlink" title="3. 结束语"></a>3. 结束语</h2><p>本文只实现了一个极度简化版本的IoC容器，并不适用于生产环境，其目的是为了清楚了解IoC的核心机制以及实现思路。如果希望有更深层次的了解，建议各位读者可以阅读spring-framework源码，里面会有更多你想要的答案。</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">sea coders</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">1</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+
+            
+
+          </nav>
+
+          
+
+          <div class="links-of-author motion-element">
+            
+          </div>
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#1-理解概念"><span class="nav-number">2.</span> <span class="nav-text">1. 理解概念</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-1-依赖倒置原则"><span class="nav-number">2.1.</span> <span class="nav-text">1.1 依赖倒置原则</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-2-控制反转"><span class="nav-number">2.2.</span> <span class="nav-text">1.2 控制反转</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-实现简单的IoC容器"><span class="nav-number">3.</span> <span class="nav-text">2. 实现简单的IoC容器</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#2-1-实现BeanFactory"><span class="nav-number">3.1.</span> <span class="nav-text">2.1 实现BeanFactory</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#2-1-1-哪些Bean交给容器管理"><span class="nav-number">3.1.1.</span> <span class="nav-text">2.1.1 哪些Bean交给容器管理</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-1-2-Bean的创建形式"><span class="nav-number">3.1.2.</span> <span class="nav-text">2.1.2 Bean的创建形式</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-1-3-Bean的作用域"><span class="nav-number">3.1.3.</span> <span class="nav-text">2.1.3 Bean的作用域</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-1-4-类扫描"><span class="nav-number">3.1.4.</span> <span class="nav-text">2.1.4 类扫描</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-1-5-BeanDefinition"><span class="nav-number">3.1.5.</span> <span class="nav-text">2.1.5 BeanDefinition</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-1-6-编写容器"><span class="nav-number">3.1.6.</span> <span class="nav-text">2.1.6 编写容器</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-1-7-测试容器"><span class="nav-number">3.1.7.</span> <span class="nav-text">2.1.7 测试容器</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-2-实现依赖注入"><span class="nav-number">3.2.</span> <span class="nav-text">2.2 实现依赖注入</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#2-2-1-注入的形式"><span class="nav-number">3.2.1.</span> <span class="nav-text">2.2.1 注入的形式</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-2-2-定义-Inject注解"><span class="nav-number">3.2.2.</span> <span class="nav-text">2.2.2 定义@Inject注解</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-2-3-定义抽象注入处理器"><span class="nav-number">3.2.3.</span> <span class="nav-text">2.2.3 定义抽象注入处理器</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-2-4-实现set方法和字段注入"><span class="nav-number">3.2.4.</span> <span class="nav-text">2.2.4 实现set方法和字段注入</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-2-5-编写InjectHandlerInvoker类"><span class="nav-number">3.2.5.</span> <span class="nav-text">2.2.5 编写InjectHandlerInvoker类</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-2-6-将注入功能合并到容器中"><span class="nav-number">3.2.6.</span> <span class="nav-text">2.2.6 将注入功能合并到容器中</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-2-7-改造BeanFactory"><span class="nav-number">3.2.7.</span> <span class="nav-text">2.2.7 改造BeanFactory</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-2-8-综合测试"><span class="nav-number">3.2.8.</span> <span class="nav-text">2.2.8 综合测试</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-结束语"><span class="nav-number">4.</span> <span class="nav-text">3. 结束语</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">sea coders</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Muse</a> v5.1.3</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.3"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.3"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
